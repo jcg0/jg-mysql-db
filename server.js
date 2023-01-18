@@ -44,12 +44,13 @@ const loadMainPrompt = () => {
       let choice = answer.choice;
       switch (choice) {
         case "View all departments":
+          viewAllDepartments();
           break;
         case "View all roles":
+          viewAllRoles();
           break;
         case "View all employees":
           viewAllEmployees();
-
           break;
         case "Add department":
           break;
@@ -77,6 +78,35 @@ const loadMainPrompt = () => {
     });
 };
 
+const viewAllDepartments = () => {
+  const statement = `SELECT * FROM department`;
+  db.query(statement, (err, rows) => {
+    if (err) {
+      console.log(err);
+    }
+    console.table(rows);
+    return loadMainPrompt();
+  });
+};
+
+const viewAllRoles = () => {
+  const statement = `SELECT role.id,
+                            role.title,
+                            role.salary,
+                            department.name AS department
+                     FROM role
+                     LEFT JOIN department ON role.department_id = department_id`;
+
+  db.query(statement, (err, rows) => {
+    if (err) {
+      console.log(err);
+    }
+
+    console.table(rows);
+    return loadMainPrompt();
+  });
+};
+
 const viewAllEmployees = () => {
   const statement = `SELECT employee.id,
                      employee.first_name,
@@ -94,7 +124,7 @@ const viewAllEmployees = () => {
       console.log(err);
     }
     // console.log("\n");
-    console.log(rows);
+    console.table(rows);
     return loadMainPrompt();
   });
   // .findAllEmployees()
