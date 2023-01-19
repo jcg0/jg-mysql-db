@@ -25,9 +25,9 @@ const loadMainPrompt = () => {
           "View all departments",
           "View all roles",
           "View all employees",
-          "Add department",
-          "Add role",
-          "Add employee",
+          "Add a department",
+          "Add a role",
+          "Add a employee",
           "Update an employee's role",
           "Update an employee's manager",
           "View employees by manager",
@@ -52,13 +52,17 @@ const loadMainPrompt = () => {
         case "View all employees":
           viewAllEmployees();
           break;
-        case "Add department":
+        case "Add a department":
+          addDepartment();
           break;
-        case "Add role":
+        case "Add a role":
+          addRole();
           break;
-        case "Add employee":
+        case "Add an employee":
+          addEmployee();
           break;
         case "Update an employee's role":
+          updateEmployee();
           break;
         case "Update an employee's manager":
           break;
@@ -73,7 +77,7 @@ const loadMainPrompt = () => {
         case "Remove employee":
           break;
         default:
-          quit();
+          console.log("hello!");
       }
     });
 };
@@ -137,5 +141,40 @@ const viewAllEmployees = () => {
   //   loadMainPrompt();
   // });
 };
+
+const addDepartment = () => {
+  return inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "name",
+        message: "What is the name of the department you would like to add?",
+        validate(answer) {
+          if (answer.length < 1) {
+            return console.log("A department name is required.");
+          } else {
+            return true;
+          }
+        },
+      },
+    ])
+    .then((answer) => {
+      const statement = `INSERT INTO department (name) VALUES (?)`;
+      const dptName = answer.name;
+      db.query(statement, dptName, (err) => {
+        if (err) {
+          console.log(err);
+        }
+        console.log("Department added.");
+        return viewAllDepartments();
+      });
+    });
+};
+
+const addRole = () => {};
+
+const addEmployee = () => {};
+
+const updateEmployee = () => {};
 
 init();
