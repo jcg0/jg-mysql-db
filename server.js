@@ -27,7 +27,7 @@ const loadMainPrompt = () => {
           "View all employees",
           "Add a department",
           "Add a role",
-          "Add a employee",
+          "Add an employee",
           "Update an employee's role",
           "Update an employee's manager",
           "View employees by manager",
@@ -230,7 +230,83 @@ const addRole = () => {
   })
 };
 
-const addEmployee = () => {};
+const addEmployee = () => {
+  return inquirer.prompt([
+    {
+      type: 'input',
+      name: 'first_name',
+      message: 'What is the first name of this employee?',
+      validate(answer){
+        if(answer.length < 1){
+          console.log('A first name is required.')
+        } else {
+          return true;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'last_name',
+      message: 'What is the last name of this employee?',
+      validate(answer){
+        if(answer.length < 1){
+          console.log('A last name is required.')
+        } else {
+          return true;
+        }
+      }
+    }
+  ])
+  .then((answer) => {
+    const names = [answer.first_name, answer.last_name];
+    const statement = `SELECT * FROM role`;
+    db.query(statement, (err, rows) => {
+      if(err){
+        console.log(err)
+      }
+      const roles = rows.map(({title, id}) => ({name: title, value:id}))
+      inquirer.prompt([
+        {
+          type: 'list',
+          name: 'roles',
+          message: 'What role does this employee serve?',
+          choices: roles
+        }
+      ])
+      .then((roleAnswer) => {
+        const role = roleAnswer.role;
+        names.push(role);
+        const statement = `SELECT * FROM employee`;
+        db.query(statement, (err, rows) => {
+          if(err){
+            console.log(err)
+          }
+          const managerList = rows.map(({last_name, first_name, id}) => ({name: `${first_name} ${last_name}`, value: id}))
+          inquirer.prompt([
+            {
+              type: 'list',
+              name: 'manager',
+              message: "Who is this employee's manager?",
+              choices: managerList
+            }
+          ])
+          .then((managerAnswer) => {
+            const manager = managerAnswer.manager;
+            names.push(manager);
+            const statement = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`
+            db.query(statement, names, (err) => {
+              if(err){
+                console.log(err);
+              }
+              console.log('New employee added.');
+              return loadMainPrompt();
+            })
+          })
+        })
+      })
+    })
+  })
+};
 
 const updateEmployee = () => {};
 
