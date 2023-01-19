@@ -166,12 +166,69 @@ const addDepartment = () => {
           console.log(err);
         }
         console.log("Department added.");
-        return viewAllDepartments();
+        return loadMainPrompt();
       });
     });
 };
 
-const addRole = () => {};
+const addRole = () => {
+  return inquirer.prompt([
+    {
+      type: 'input',
+      name: 'title',
+      message: 'What is the title of the role?',
+      validate(answer) {
+        if (answer.length < 1) {
+          return console.log('A role title is required.')
+        } else {
+          return true
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'salary',
+      message: 'What is the salary for the role?',
+      validate(answer) {
+        if(answer < 0) {
+          return console.log('A salary for this role is required.')
+        } else {
+          return true;
+        }
+      }
+    }
+  ])
+  .then((answer) => {
+    const roleSelections = [answer.title, answer.salary];
+    const statement = `SELECT * FROM department`;
+    db.query(statement, (err, rows) => {
+      if(err){
+        console.log(err);
+      }
+      const dpts = rows.map(({name, id}) => ({name: name, value: id}));
+      inquirer.prompt([
+        {
+          type: 'list',
+          name: 'department',
+          message: 'What department does this role belong to?',
+          choices: dpts
+        }
+      ])
+      .then((dptAnswer) => {
+        const dpt = dptAnswer.dpt;
+        roleSelections.push(dpt);
+        const statement = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
+        db.query(statement, roleSelections, (err) => {
+          if(err) {
+            console.log(err);
+          }
+          console.log('New role added.')
+          return loadMainPrompt();
+        })
+      })
+    })
+  })
+};
 
 const addEmployee = () => {};
 
